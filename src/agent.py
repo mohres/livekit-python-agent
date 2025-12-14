@@ -87,9 +87,14 @@ async def agent_entrypoint(ctx: JobContext) -> None:
 
         # Start the agent session
         if avatar_session:
-            # Start with LiveAvatar
-            await avatar_session.start(agent_session, room=ctx.room)
-            logger.info("Agent started with LiveAvatar integration")
+            # Try to start with LiveAvatar, fallback to audio-only on failure
+            try:
+                await avatar_session.start(agent_session, room=ctx.room)
+                logger.info("Agent started with LiveAvatar integration")
+            except Exception as e:
+                logger.warning(f"Failed to start with LiveAvatar (continuing without avatar): {e}")
+                await agent_session.start(agent=agent, room=ctx.room)
+                logger.info("Agent started in audio-only mode after LiveAvatar failure")
         else:
             # Start without avatar
             await agent_session.start(agent=agent, room=ctx.room)
