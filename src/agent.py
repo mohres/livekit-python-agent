@@ -40,6 +40,10 @@ async def agent_entrypoint(ctx: JobContext) -> None:
     """
     logger.info(f"Agent {config.agent.name} starting in room: {ctx.room.name}")
 
+    # Connect to the room first
+    await ctx.connect()
+    logger.info(f"Connected to room: {ctx.room.name}")
+
     avatar_session = None
 
     try:
@@ -66,8 +70,7 @@ async def agent_entrypoint(ctx: JobContext) -> None:
         if config.liveavatar.api_key and config.liveavatar.avatar_id:
             try:
                 avatar_session = liveavatar.AvatarSession(
-                    avatar_id=config.liveavatar.avatar_id,
-                    api_key=config.liveavatar.api_key
+                    avatar_id=config.liveavatar.avatar_id
                 )
                 logger.info(f"LiveAvatar session created with avatar ID: {config.liveavatar.avatar_id}")
             except Exception as e:
@@ -79,25 +82,37 @@ async def agent_entrypoint(ctx: JobContext) -> None:
         # Set up room event handlers
         @ctx.room.on("participant_connected")
         def on_participant_connected(participant: rtc.RemoteParticipant):
-            logger.info(f"Participant connected: {participant.identity}")
+            logger.info(f"Participant connected: {participant.identity} - {participant.sid}")
+            logger.info(f"Room now has {len(ctx.room.remote_participants)} participants")
 
         @ctx.room.on("participant_disconnected")
         def on_participant_disconnected(participant: rtc.RemoteParticipant):
-            logger.info(f"Participant disconnected: {participant.identity}")
+            logger.info(f"Participant disconnected: {participant.identity} - {participant.sid}")
+
+        @ctx.room.on("track_published")
+        def on_track_published(track: rtc.RemoteTrack, participant: rtc.RemoteParticipant):
+            logger.info(f"Track published by {participant.identity}: {track.kind} - {track.sid}")
+
+        @ctx.room.on("track_unpublished")
+        def on_track_unpublished(track: rtc.RemoteTrack, participant: rtc.RemoteParticipant):
+            logger.info(f"Track unpublished by {participant.identity}: {track.kind} - {track.sid}")
 
         # Start the agent session
         if avatar_session:
             # Try to start with LiveAvatar, fallback to audio-only on failure
             try:
+                # Start avatar session first, then agent session
                 await avatar_session.start(agent_session, room=ctx.room)
+                logger.info("LiveAvatar started successfully")
+                await agent_session.start(agent, room=ctx.room)
                 logger.info("Agent started with LiveAvatar integration")
             except Exception as e:
                 logger.warning(f"Failed to start with LiveAvatar (continuing without avatar): {e}")
-                await agent_session.start(agent=agent, room=ctx.room)
+                await agent_session.start(agent, room=ctx.room)
                 logger.info("Agent started in audio-only mode after LiveAvatar failure")
         else:
             # Start without avatar
-            await agent_session.start(agent=agent, room=ctx.room)
+            await agent_session.start(agent, room=ctx.room)
             logger.info("Agent started in audio-only mode")
 
         logger.info(f"Agent {config.agent.name} started successfully")
