@@ -67,8 +67,8 @@ def get_config() -> Config:
         ),
         gemini=GeminiConfig(
             api_key=google_api_key,
-            model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp"),
-            voice=os.getenv("GEMINI_VOICE", "Puck"),
+            model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash-native-audio-preview-09-2025"),
+            voice=os.getenv("GEMINI_VOICE", "Enceladus"),
             temperature=float(os.getenv("GEMINI_TEMPERATURE", "0.2"))
         ),
         agent=AgentConfig(
