@@ -47,14 +47,15 @@ async def agent_entrypoint(ctx: JobContext) -> None:
     avatar_session = None
 
     try:
-        # Create Gemini Live API model
         gemini_model = RealtimeModel(
             api_key=config.gemini.api_key,
-            model=config.gemini.model,  # Use configured model
-            voice=config.gemini.voice,  # Available voices: Puck, Charon, Kore, Fenrir, Aoede
+            model=config.gemini.model,
+            voice=config.gemini.voice,
             instructions=config.agent.instructions,
             modalities=["AUDIO"],  # Audio-only mode
-            temperature=config.gemini.temperature  # Use configured temperature
+            temperature=config.gemini.temperature,
+            # Completely disable thinking mode for fastest response times
+            thinking_config={"thinking_budget": 0},  # Zero budget = no thinking = maximum speed
         )
 
         # Create Agent instance with instructions
