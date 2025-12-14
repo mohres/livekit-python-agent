@@ -15,8 +15,8 @@ class LiveKitConfig:
 @dataclass
 class GeminiConfig:
     api_key: str
-    model: str = "gemini-2.0-flash-exp"  # Default to working model
-    voice: str = "Puck"
+    model: str = "gemini-2.5-flash-native-audio-preview-09-2025"
+    voice: str = "Enceladus"
     temperature: float = 0.2
 
 @dataclass
