@@ -36,16 +36,27 @@ class AgentConfig:
     room_prefix: str = "call-"
 
 @dataclass
+class AnamConfig:
+    api_key: Optional[str] = None
+    avatar_id: Optional[str] = None
+
+@dataclass
 class LiveAvatarConfig:
     api_key: Optional[str] = None
     avatar_id: Optional[str] = None
+
+@dataclass
+class AvatarConfig:
+    anam: AnamConfig
+    liveavatar: LiveAvatarConfig
+    provider: Optional[str] = None  # "anam", "liveavatar", or None for audio-only
 
 @dataclass
 class Config:
     livekit: LiveKitConfig
     gemini: GeminiConfig
     agent: AgentConfig
-    liveavatar: LiveAvatarConfig
+    avatar: AvatarConfig
 
 def get_config() -> Config:
     """Load configuration from environment variables."""
@@ -75,8 +86,15 @@ def get_config() -> Config:
             name=os.getenv("AGENT_NAME", "Aram Voice Assistant"),
             room_prefix=os.getenv("ROOM_PREFIX", "call-")
         ),
-        liveavatar=LiveAvatarConfig(
-            api_key=os.getenv("LIVEAVATAR_API_KEY"),
-            avatar_id=os.getenv("AVATAR_ID")
+        avatar=AvatarConfig(
+            anam=AnamConfig(
+                api_key=os.getenv("ANAM_API_KEY"),
+                avatar_id=os.getenv("ANAM_AVATAR_ID")
+            ),
+            liveavatar=LiveAvatarConfig(
+                api_key=os.getenv("LIVEAVATAR_API_KEY"),
+                avatar_id=os.getenv("AVATAR_ID")
+            ),
+            provider=os.getenv("AVATAR_PROVIDER")
         )
     )

@@ -16,7 +16,7 @@ from livekit.agents import (
 from livekit.plugins.silero import VAD
 from livekit import rtc
 from livekit.plugins.google.realtime import RealtimeModel
-from livekit.plugins import liveavatar
+from livekit.plugins import anam, liveavatar
 
 from src.config import get_config
 
@@ -67,18 +67,34 @@ async def agent_entrypoint(ctx: JobContext) -> None:
             llm=gemini_model  # Direct LLM integration
         )
 
-        # Setup LiveAvatar integration if configured
-        if config.liveavatar.api_key and config.liveavatar.avatar_id:
+        # Setup avatar integration based on provider selection
+        if config.avatar.provider == "anam" and config.avatar.anam.api_key and config.avatar.anam.avatar_id:
+            try:
+                avatar_session = anam.AvatarSession(
+                    persona_config=anam.PersonaConfig(
+                        name="Aram",
+                        avatarId=config.avatar.anam.avatar_id,
+                    ),
+                    api_key=config.avatar.anam.api_key
+                )
+                logger.info(f"Anam avatar session created with avatar ID: {config.avatar.anam.avatar_id}")
+            except Exception as e:
+                logger.warning(f"Failed to create Anam avatar session (will continue without avatar): {e}")
+                avatar_session = None
+        elif config.avatar.provider == "liveavatar" and config.avatar.liveavatar.api_key and config.avatar.liveavatar.avatar_id:
             try:
                 avatar_session = liveavatar.AvatarSession(
-                    avatar_id=config.liveavatar.avatar_id
+                    avatar_id=config.avatar.liveavatar.avatar_id
                 )
-                logger.info(f"LiveAvatar session created with avatar ID: {config.liveavatar.avatar_id}")
+                logger.info(f"LiveAvatar session created with avatar ID: {config.avatar.liveavatar.avatar_id}")
             except Exception as e:
                 logger.warning(f"Failed to create LiveAvatar session (will continue without avatar): {e}")
                 avatar_session = None
         else:
-            logger.info("LiveAvatar not configured, continuing with audio-only mode")
+            if config.avatar.provider:
+                logger.info(f"Avatar provider '{config.avatar.provider}' not configured or credentials missing, continuing with audio-only mode")
+            else:
+                logger.info("No avatar provider selected, continuing with audio-only mode")
 
         # Set up room event handlers
         @ctx.room.on("participant_connected")
@@ -100,17 +116,17 @@ async def agent_entrypoint(ctx: JobContext) -> None:
 
         # Start the agent session
         if avatar_session:
-            # Try to start with LiveAvatar, fallback to audio-only on failure
+            # Try to start with selected avatar provider, fallback to audio-only on failure
             try:
                 # Start avatar session first, then agent session
                 await avatar_session.start(agent_session, room=ctx.room)
-                logger.info("LiveAvatar started successfully")
+                logger.info(f"{config.avatar.provider.title()} avatar started successfully")
                 await agent_session.start(agent, room=ctx.room)
-                logger.info("Agent started with LiveAvatar integration")
+                logger.info(f"Agent started with {config.avatar.provider} avatar integration")
             except Exception as e:
-                logger.warning(f"Failed to start with LiveAvatar (continuing without avatar): {e}")
+                logger.warning(f"Failed to start with {config.avatar.provider} avatar (continuing without avatar): {e}")
                 await agent_session.start(agent, room=ctx.room)
-                logger.info("Agent started in audio-only mode after LiveAvatar failure")
+                logger.info(f"Agent started in audio-only mode after {config.avatar.provider} avatar failure")
         else:
             # Start without avatar
             await agent_session.start(agent, room=ctx.room)
@@ -136,7 +152,8 @@ def main():
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
 
-        logger.info(f"Starting {config.agent.name} with LiveAvatar integration...")
+        provider_msg = f" with {config.avatar.provider} avatar" if config.avatar.provider else ""
+        logger.info(f"Starting {config.agent.name}{provider_msg} integration...")
 
         # Run the agent server
         cli.run_app(server)

@@ -898,6 +898,18 @@ wheels = [
 ]
 
 [[package]]
+name = "livekit-plugins-anam"
+version = "1.3.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "livekit-agents" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/88/ac/b67ca16da106829cfc703aa4861bf5d73cbd5385cc2515c378db01759c14/livekit_plugins_anam-1.3.6.tar.gz", hash = "sha256:7f2c3ed75a5cffe9ece3dfeb0975a7197433000ff6645c0aa22e1ece97518350", size = 6028, upload-time = "2025-12-03T19:09:26.636Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ef/78/a1d40285a16b4407ebfd46e9fdc98824ca19ede40ab93faa526931643c10/livekit_plugins_anam-1.3.6-py3-none-any.whl", hash = "sha256:02e383c1e12fe704c290fd84eb66e65a7e6a4fee4ca72ae2f28b7e4aad221c58", size = 6952, upload-time = "2025-12-03T19:09:25.526Z" },
+]
+
+[[package]]
 name = "livekit-plugins-cartesia"
 version = "1.3.6"
 source = { registry = "https://pypi.org/simple" }
@@ -996,6 +1008,7 @@ version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "livekit-agents", extra = ["cartesia", "deepgram", "openai", "silero"] },
+    { name = "livekit-plugins-anam" },
     { name = "livekit-plugins-google" },
     { name = "livekit-plugins-liveavatar" },
     { name = "python-dotenv" },
@@ -1004,6 +1017,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "livekit-agents", extras = ["cartesia", "deepgram", "openai", "silero"], specifier = "~=1.3.6" },
+    { name = "livekit-plugins-anam", specifier = ">=1.2.6" },
     { name = "livekit-plugins-google", specifier = ">=1.3.6" },
     { name = "livekit-plugins-liveavatar", specifier = ">=1.3.6" },
     { name = "python-dotenv", specifier = ">=1.2.1" },

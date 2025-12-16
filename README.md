@@ -2,13 +2,7 @@
 
 A modern Python LiveKit agent featuring native Google Gemini Live API integration and optional LiveAvatar support for visual representation.
 
-## 🎯 Features
 
-- **Modern Architecture**: Native Google Gemini Live API integration using LiveKit's RealtimeModel
-- **Audio-First Design**: Real-time voice AI with 16kHz audio processing
-- **Arabic Personality**: "Aram" - Saudi Arabian hotel guest relations assistant
-- **Optional LiveAvatar**: Visual avatar representation with graceful fallback
-- **Production Ready**: Built with 2024 LiveKit best practices
 
 ## 🚀 Quick Start
 
@@ -21,22 +15,6 @@ cp .env.example .env
 
 Edit `.env` with your credentials:
 
-```env
-# LiveKit Configuration (get from https://cloud.livekit.io)
-LIVEKIT_URL=wss://your-project.livekit.cloud
-LIVEKIT_API_KEY=your-api-key
-LIVEKIT_API_SECRET=your-api-secret
-
-# Google Gemini Configuration (get from https://aistudio.google.com/app/apikey)
-GOOGLE_API_KEY=your-gemini-api-key
-
-# Agent Configuration
-AGENT_NAME=Aram Voice Assistant
-
-# LiveAvatar Configuration (Optional - leave blank to disable)
-LIVEAVATAR_API_KEY=
-AVATAR_ID=
-```
 
 ### 2. Install Dependencies
 
@@ -57,12 +35,51 @@ uv run python -m src.agent console
 uv run python -m src.agent start
 ```
 
-### 4. Test with LiveKit Playground
+### 4. Test with Web Frontend
 
+#### Option A: Official LiveKit Web Frontend (Recommended)
+
+For the best local testing experience, use LiveKit's official web frontend:
+
+1. **Set up the official frontend** (one-time setup):
+   ```bash
+   # Clone the official agents playground (outside your project directory)
+   cd .. && git clone https://github.com/livekit/agents-playground.git
+   cd agents-playground && pnpm install
+
+   # Configure with your LiveKit credentials
+   cp .env.example .env.local
+   # Edit .env.local with your LIVEKIT_URL, LIVEKIT_API_KEY, and LIVEKIT_API_SECRET
+   ```
+
+2. **Test your agent with avatar**:
+   ```bash
+   # Terminal 1: Start your Python agent
+   uv run python -m src.agent dev
+
+   # Terminal 2: Start the agents playground
+   cd ../agents-playground && pnpm run dev
+   ```
+
+3. **Interact with Aram's avatar**:
+   - Open http://localhost:3000 in your browser
+   - Join any room name (e.g., "test-room")
+   - **Avatar video will appear** when your agent joins
+   - Start speaking in Arabic to see the avatar respond with lip-sync
+   - Experience the full multimodal agent with visual representation!
+
+**Perfect for avatar testing:**
+- ✅ **Avatar video display** - see your LiveAvatar in action
+- ✅ **Audio visualization** and real-time transcription
+- ✅ **Settings panel** to adjust audio/video preferences
+- ✅ **Same UI as cloud playground** but running locally
+- ✅ **Multimodal interface** - audio, video, and text input
+
+#### Option B: LiveKit Cloud Playground
 1. **Start agent**: `uv run python -m src.agent dev`
 2. **Wait for**: `registered worker {"agent_name": "Aram Voice Assistant"...}`
 3. **Open**: https://agents-playground.livekit.io
-4. **Connect using your LiveKit URL** from `.env` (remove `wss://` prefix)
+4. **Select your LiveKit Cloud project** from the dropdown
 5. **Join any room** and start talking in Arabic or English
 
 ## 🎭 LiveAvatar Integration
@@ -152,35 +169,18 @@ instructions = """أنت آرام، مسؤول خدمة الضيوف في فند
 - **Turn Detection**: Server-side VAD from Gemini Live API
 - **Voice**: "Puck" (available: Puck, Charon, Kore, Fenrir, Aoede)
 
-## 🚨 Troubleshooting
+## 🖥️ Local Development
 
-### Connection Issues
+For local testing, we recommend using LiveKit's official web frontend (as shown above), which provides:
 
-```bash
-# Check agent logs for errors
-uv run python -m src.agent dev
+- Professional UI components optimized for agent interaction
+- Built-in audio visualization and connection status
+- Proper WebRTC handling with echo cancellation
+- Real-time error handling and reconnection logic
+- No custom server setup required
 
-# Common issues:
-# 1. Wrong LIVEKIT_URL format (should include wss://)
-# 2. Invalid API credentials
-# 3. Network/firewall blocking LiveKit cloud
-```
+The official frontend automatically handles token generation and provides a much better user experience than custom playground implementations.
 
-### Agent Not Responding
-
-1. **Verify Gemini API key**: Test at https://aistudio.google.com
-2. **Check agent logs**: Look for initialization errors
-3. **Try playground**: Use https://agents-playground.livekit.io first
-4. **Network test**: Ensure WebRTC connectivity
-
-### LiveAvatar Issues
-
-```bash
-# Disable avatar to test audio-only mode
-# Remove or comment out in .env:
-# LIVEAVATAR_API_KEY=
-# AVATAR_ID=
-```
 
 ## 🌍 Production Deployment
 
@@ -225,47 +225,3 @@ uv run python -m src.agent start
 | `LIVEAVATAR_API_KEY` | No | LiveAvatar API key (optional) |
 | `AVATAR_ID` | No | LiveAvatar avatar ID (optional) |
 | `LOG_LEVEL` | No | Logging level (default: INFO) |
-
-## 🛠️ Development
-
-### Dependencies
-
-- Python 3.12+
-- `livekit-agents[cartesia,deepgram,openai,silero]~=1.3.6`
-- `livekit-plugins-google>=1.3.6`
-- `livekit-plugins-liveavatar>=1.3.6` (for avatar support)
-
-### Adding Features
-
-The modern architecture makes it easy to extend:
-
-1. **Custom instructions**: Modify `config.agent.instructions` in `config.py`
-2. **Different voices**: Change `voice="Puck"` in `agent.py`
-3. **Additional modalities**: Add `"VIDEO"` to modalities for multimodal support
-4. **Custom VAD**: Replace `voice.VAD.load("silero")` with other options
-
-## 🔄 Migration from Previous Version
-
-If upgrading from the old custom handler implementation:
-
-1. **Backup your .env file**
-2. **Run**: `uv sync` to get new dependencies
-3. **Update .env**: Change `GEMINI_API_KEY` to `GOOGLE_API_KEY`
-4. **Remove old handlers**: Custom handlers are no longer needed
-5. **Test**: The agent should work with the same functionality but much simpler code
-
-## 📞 Support
-
-- **LiveKit Documentation**: https://docs.livekit.io/agents/
-- **Gemini Live API**: https://ai.google.dev/gemini-api/docs/live
-- **LiveAvatar**: https://liveavatar.com
-- **Issues**: Report bugs in the project repository
-
-## 🎉 Success!
-
-You now have a modern, production-ready LiveKit Python agent with:
-- ✅ Native Gemini Live API integration
-- ✅ Real-time Arabic voice conversations
-- ✅ Optional visual avatar support
-- ✅ Simplified, maintainable codebase
-- ✅ Built with 2024 LiveKit best practices
